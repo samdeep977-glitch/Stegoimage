@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stego Image Tool</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #121212;
+    margin: 0;
+    padding: 0;
+    color: #eee;
+  }
+  header {
+    text-align: center;
+    background: #1e1e1e;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-bottom: 2px solid #ffcc33;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 30px;
+    color: #ffcc33;
+  }
+  header p {
+    margin: 5px 0 0;
+    font-style: italic;
+    font-size: 14px;
+    color: #aaa;
+  }
+  main {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  section {
+    background: #1e1e1e;
+    border: 2px dashed #ffcc33;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+  }
+  section h2 {
+    margin-top: 0;
+    color: #ffcc33;
+  }
+  textarea {
+    width: 90%;
+    height: 80px;
+    margin: 10px 0;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #222;
+    color: #eee;
+    resize: none;
+  }
+  button {
+    background: #ff9900;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+  }
+  button:hover {
+    background: #cc7a00;
+  }
+  footer {
+    text-align: center;
+    padding: 10px;
+    background: #1e1e1e;
+    border-top: 2px solid #ffcc33;
+    margin-top: 20px;
+    color: #999;
+  }
+  .instructions {
+    background: #1a1a1a;
+    border-left: 4px solid #ff9900;
+    margin: 20px auto;
+    padding: 12px 15px;
+    border-radius: 8px;
+    max-width: 600px;
+    font-size: 13px;
+    color: #ccc;
+  }
+  .instructions h3 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    color: #ffcc33;
+  }
+  .instructions ul {
+    padding-left: 18px;
+  }
+  .instructions li {
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .muted-note {
+    font-size: 13px;
+    color: #bbb;
+    margin: 6px 0;
+  }
+  .toast {
+    visibility: hidden;
+    min-width: 280px;
+    margin-left: -140px;
+    background-color: #222;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 14px;
+    border: 2px solid #4caf50;
+    transition: visibility 0s, opacity 0.5s linear;
+    opacity: 0;
+  }
+  .toast.show {
+    visibility: visible;
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="images/logo.jpeg"
+     alt="Stegano Logo"
+     style="height:60px; margin-right:16px; border-radius:8px;"
+     onerror="this.onerror=null;this.src='https://via.placeholder.com/60?text=Logo';">
+
+  
+  <div>
+    <h1>Steganography Image Tool</h1>
+    <p>Hide your secret messages in images - simple and secure!</p>
+  </div>
+</header>
+
+
+<main>
+  <!-- Encode Section -->
+  <section id="encodeSection">
+    <div id="encodeToast" class="toast" role="status" aria-live="polite"></div>
+    
+    <h2>🔒 Hide Text in Image</h2>
+    <input type="file" id="encodeImage" accept="image/png, image/jpeg"><br>
+    <div id="encodeFileStatus" class="muted-note">No file selected.</div>
+    <div id="capacityInfo" class="muted-note"></div>
+    
+    <textarea id="secretText" placeholder="Enter your secret message here..."></textarea><br>
+    <button class="btn" id="encodeBtn">Encode Message</button>
+  </section>
+
+  <!-- Decode Section -->
+  <section>
+    <h2>📂 Reveal Text from Image</h2>
+    <input type="file" id="decodeImage" accept="image/png, image/jpeg"><br>
+    <div id="decodeFileStatus" class="muted-note">No file selected.</div>
+    <textarea id="decodedText" placeholder="Decoded text will appear here..."></textarea><br>
+    <div id="decodeTimer" class="muted-note"></div>
+    <button class="btn" id="decodeBtn">Extract Text</button>
+  </section>
+</main>
+
+<footer>
+  <p>Stego Image Tool - Image Steganography Project | 2025</p>
+</footer>
+
+<div class="instructions">
+  <h3>📌 How to Use</h3>
+  <ul>
+    <li><strong>Hide a Message:</strong> Select an image, enter your secret message, click <b>Encode Message</b>, download the new image.</li>
+    <li><strong>Reveal a Message:</strong> Upload an encoded image, click <b>Extract Text</b>, see the hidden message.</li>
+    <li><strong>Note:</strong> Use larger images for longer messages.</li>
+  </ul>
+</div>
+
+<script>
+const encodeImage = document.getElementById("encodeImage");
+const secretText = document.getElementById("secretText");
+const encodeBtn = document.getElementById("encodeBtn");
+const encodeToast = document.getElementById("encodeToast");
+const capacityInfo = document.getElementById("capacityInfo");
+const decodeImage = document.getElementById("decodeImage");
+const decodeBtn = document.getElementById("decodeBtn");
+const decodedText = document.getElementById("decodedText");
+const decodeTimer = document.getElementById("decodeTimer");
+
+// Green confirmation under Encode button
+const successMsg = document.createElement("div");
+successMsg.style.marginTop = "10px";
+successMsg.style.color = "#4caf50";
+successMsg.style.fontSize = "14px";
+document.getElementById("encodeSection").appendChild(successMsg);
+
+// Toast & inline success
+function showToast(msg='✅ Action completed successfully', ms=4000){
+  encodeToast.textContent = msg;
+  encodeToast.classList.add('show');
+  setTimeout(()=>encodeToast.classList.remove('show'), ms);
+  successMsg.textContent = msg;
+  setTimeout(()=> successMsg.textContent = "", ms);
+}
+
+// Encode file selection
+encodeImage.addEventListener('change', () => {
+  const status = document.getElementById('encodeFileStatus');
+  if (encodeImage.files.length > 0) {
+    const file = encodeImage.files[0];
+    status.textContent = `✅ File selected: ${file.name}`;
+    status.style.color = '#90ee90';
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const capacity = Math.floor((img.width * img.height) / 8);
+        capacityInfo.textContent = `ℹ Max message length: ~${capacity} characters`;
+      }
+    };
+    reader.readAsDataURL(file);
+  } else {
+    status.textContent = 'No file selected.';
+    status.style.color = '#ddd';
+    capacityInfo.textContent = '';
+  }
+});
+
+// Decode file selection
+decodeImage.addEventListener('change', () => {
+  const status = document.getElementById('decodeFileStatus');
+  if (decodeImage.files.length > 0) {
+    const file = decodeImage.files[0];
+    status.textContent = `✅ File selected: ${file.name}`;
+    status.style.color = '#90ee90';
+  } else {
+    status.textContent = 'No file selected.';
+    status.style.color = '#ddd';
+  }
+});
+
+// Encode logic
+encodeBtn.addEventListener("click", () => {
+  if (!encodeImage.files[0] || !secretText.value) {
+    alert("Please select an image and enter a secret text!");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    const img = new Image();
+    img.src = event.target.result;
+    img.onload = function () {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      let binaryMessage = "";
+      for (let i = 0; i < secretText.value.length; i++) {
+        binaryMessage += secretText.value.charCodeAt(i).toString(2).padStart(8,"0");
+      }
+      binaryMessage += "00000000";
+
+      if (binaryMessage.length > data.length) {
+        alert("Message is too long for this image!");
+        return;
+      }
+
+      for (let i = 0; i < binaryMessage.length; i++) {
+        data[i*4] = (data[i*4] & 254) | parseInt(binaryMessage[i]);
+      }
+
+      ctx.putImageData(imageData,0,0);
+
+      const link = document.createElement("a");
+      link.download = "stego-encoded.png";
+      link.href = canvas.toDataURL();
+      link.click();
+
+      showToast("✅ Hidden message successfully encoded & saved as stego-encoded.png");
+
+      setTimeout(() => location.reload(), 2000);
+    }
+  };
+  reader.readAsDataURL(encodeImage.files[0]);
+});
+
+// Decode logic
+decodeBtn.addEventListener("click", () => {
+  if (!decodeImage.files[0]) {
+    alert("Please select an image to decode!");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(event){
+    const img = new Image();
+    img.src = event.target.result;
+    img.onload = function(){
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img,0,0);
+
+      const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const data = imageData.data;
+
+      let binaryMessage = "";
+      for(let i=0;i<data.length;i+=4){
+        binaryMessage += (data[i]&1).toString();
+      }
+
+      let hiddenText = "";
+      for(let i=0;i<binaryMessage.length;i+=8){
+        let byte = binaryMessage.substr(i,8);
+        if(byte==="00000000") break;
+        hiddenText += String.fromCharCode(parseInt(byte,2));
+      }
+
+      decodedText.value = hiddenText || "No hidden text found!";
+      showToast("✅ Message successfully revealed!");
+
+      // Start 30s countdown
+      let timeLeft = 30;
+      decodeTimer.textContent = `Time remaining: ${timeLeft}s`;
+      const countdown = setInterval(() => {
+        timeLeft--;
+        decodeTimer.textContent = `Time remaining: ${timeLeft}s`;
+        if(timeLeft <= 0){
+          clearInterval(countdown);
+          location.reload();
+        }
+      }, 1000);
+    }
+  };
+  reader.readAsDataURL(decodeImage.files[0]);
+});
+</script>
+</body>
+</html>
+
